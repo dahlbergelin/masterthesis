@@ -16,10 +16,10 @@ REF_FAI="/gatk/project/GRCh38.d1.vd1.fa.fai"
 
 
 #  VCF files 
-#KNOWN_SITES="/path/to/known/sites.vcf"  
+KNOWN_SITES="/gatk/project/common_all_20180418.vcf"  
 
 # Output table
-#OUTPUT_TABLE="$OUTPUT_DIR/recal_data.table"  
+OUTPUT_TABLE="$OUTPUT_DIR/recal_data.table"  
 
 # Function to log the current time and message
 log() {
@@ -88,7 +88,7 @@ else
     exit 1
 fi
 
-:'
+
 # Run Base Quality Recalibration on the output from SplitNCigarReads
 log "Running BaseRecalibrator..."
 gatk --java-options '-Xmx4g' BaseRecalibrator \
