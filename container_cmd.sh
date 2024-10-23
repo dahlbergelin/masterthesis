@@ -55,3 +55,33 @@ sudo docker run -v ~/project:/gatk/project \
 
 # Remove all files that looks like this, whithout askking before files deleted
 rm -f samtools.846.67.tmp.*.bam
+rm -f * # alla i den mappen :) 
+
+
+# Reference genome
+
+# Baserecalibration
+wget https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/VCF/common_all_20180418.vcf.gz.tbi
+wget https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/VCF/common_all_20180418.vcf.gz
+
+#<<<<<<<< start a screen session>>>>>>>>>
+# keep processes running on a remote server even if you lose your connection or need to close the terminal
+screen -S session_name
+
+# Detach from a Screen Session (Keep it Running in the Background)
+Ctrl + A, then D 
+
+#3. Reattach to a Screen Session
+screen -r session_name 
+
+#List All Active Screen Sessions
+screen -ls
+
+#kill a screen session 
+screen -S session_name -X quit
+
+#workflow
+screen -S mysession
+./my_long_script.sh
+Ctrl + A, then D
+screen -r mysession
