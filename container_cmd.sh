@@ -1,4 +1,3 @@
-
 sudo docker ps # check running containers 
 sudo docker ps -a # check docker all containers 
 docker inspect <container_id_or_name> # Get Detailed Information
@@ -6,8 +5,6 @@ exit # How to exit a container
 docker start <container_name_or_id> # Step 1: Start the Container
 sudo docker exec -it adoring_carson /bin/bash  #execute an already excisting container
 
-#view script 
-cat /gatk/project/run_pipeline.sh
 
 # to update version outside my container
 scp /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/
@@ -38,17 +35,30 @@ sed -i 's/\r$//' run_pipeline.sh # to run on windows
 ./run_pipeline.sh
 ./final_mutect2.sh
 '
+head -n 10 /gatk/data/elin_output/contamination.table # get the ten first heads in the file
+cat /gatk/project/run_pipeline.sh #view script
+zless /gatk/data//elin_output/filtered_without_seg.vcf.gz # view a xipped file. press key: q to exit 
+bcftools view -f .,PASS -H -Ov filtered_without_seg.vcf.gz | less -S # view filtered variants n .vcf file
 
+# Remove all files that looks like this, whithout askking before files deleted
+rm -f samtools.846.67.tmp.*.bam
+rm -f * # alla i den mappen :) 
 
 # -----COLORS of files in Terminal-------
 # Executable file in container : -rwxr-xr-x (green)
 # Directory (blue)
 # not executable file in container : -rw-r--r-- (black)
 
-# Remove all files that looks like this, whithout askking before files deleted
-rm -f samtools.846.67.tmp.*.bam
-rm -f * # alla i den mappen :) 
 
+#<<<<<<<< start a screen session>>>>>>>>>
+# keep processes running on a remote server even if you lose your connection or need to close the terminal
+screen -S session_name
+Ctrl + A, then D # Detach from a Screen Session (Keep it Running in the Background)
+screen -r session_name #3. Reattach to a Screen Session
+screen -ls #List All Active Screen Sessions
+screen -S session_name -X quit #kill a screen session
+
+# <<<<<<<<   WORKFLOW MUTECT2   >>>>>>>>>
 # Reference genome
 
 # Baserecalibration
@@ -80,12 +90,15 @@ GERMLINE_RESOURCE="/gatk/project/af-only-gnomad.hg38.vcf.gz"
 gsutil cp gs://gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz /gatk/project/
 
 # Get file name for segmentation in filter Mutec Calls 
-samtools view - 
+samtools view - H 
 
-#<<<<<<<< start a screen session>>>>>>>>>
-# keep processes running on a remote server even if you lose your connection or need to close the terminal
-screen -S session_name
-Ctrl + A, then D # Detach from a Screen Session (Keep it Running in the Background)
-screen -r session_name #3. Reattach to a Screen Session
-screen -ls #List All Active Screen Sessions
-screen -S session_name -X quit #kill a screen session
+# Get a .GTF file for the specific intervals
+curl -L -o gencode.v47.annotation.gtf.gz https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_47/gencode.v47.annotation.gtf.gz
+# convert it to a .BED file
+zcat gencode.v47.annotation.gtf | awk '$3 == "exon"' | awk '{print $1"\t"$4-1"\t"$5"\t"$9}' > gencode.v47.annotation.exons.bed
+# Convert BED to Interval List using Picard's BedToIntervalList tool
+java -jar picard.jar BedToIntervalList \
+    I=gencode.v47.annotation.exons.bed \
+    O=hg38_exons.interval_list \
+    SD=GRCh38.d1.vd1.dict
+
