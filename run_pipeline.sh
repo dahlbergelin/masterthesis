@@ -2,6 +2,115 @@
 
 # Set GATK options
 GATK_JAR="/gatk/gatk-package-4.6.0.0-local.jar"
+INPUT_BAM="/gatk/source/raw_data/1d93cae2-d8e3-4e9d-a097-240d3c06e6a1/81e85e60-a0b6-4898-8cb0-02ac1a70f157.rna_seq.genomic.gdc_realn.bam"
+OUTPUT_DIR="/gatk/data/elin_output"
+SORTED_BAM="/gatk/project/tmp/sorted.bam"  # Path to the already sorted BAM file
+FINAL_OUTPUT_BAM="$OUTPUT_DIR/marked_duplicates.bam"  # Output from MarkDuplicates
+SPLIT_OUTPUT_BAM="$OUTPUT_DIR/split_ncigar_reads.bam"  # Final output file after SplitNCigarReads
+METRICS_FILE="$OUTPUT_DIR/marked_dup_metrics.txt"  # Metrics file (optional)
+CONT_VCF="/gatk/project/small_exac_common_3.hg38.vcf.gz"  # Fixed space issue
+
+# Set reference genome path
+REF_GENOME="/gatk/project/GRCh38.d1.vd1.fa"
+REF_DICT="/gatk/project/GRCh38.d1.vd1.dict"
+REF_FAI="/gatk/project/GRCh38.d1.vd1.fa.fai"
+
+# VCF files
+KNOWN_SITES="/gatk/project/updated_common_all_20180418.vcf.gz"
+PON_VCF="/gatk/project/1000g_pon.hg38.vcf.gz"  # Panel of Normals
+GERMLINE_RESOURCE="/gatk/project/af-only-gnomad.hg38.vcf.gz"  # Ensure correct path to germline resource
+
+# Output files
+OUTPUT_TABLE="$OUTPUT_DIR/recal_data.table"
+OUTPUT_BAM="$OUTPUT_DIR/recalibrated_output.bam"  # Final output BAM after applying BQSR
+SOMATIC_VCF="$OUTPUT_DIR/somatic.vcf.gz"  # Output VCF file for somatic variants
+OUTPUT_SEG="$OUTPUT_DIR/segments.tsv"
+PILEUP_TAB="$OUTPUT_DIR/pileups.table"  # Output for GetPileupSummaries
+CONT_TAB="$OUTPUT_DIR/contamination.table"
+FILT_MUTCAL="$OUTPUT_DIR/filtered.vcf.gz"
+
+# Function to log the current time and message
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+:'
+# Variant Calling with Mutect2
+log "Running Mutect2 for variant calling..."
+gatk Mutect2 \
+    -R "$REF_GENOME" \
+    -I "$OUTPUT_BAM" \
+    --germline-resource "$GERMLINE_RESOURCE" \
+    --panel-of-normals "$PON_VCF" \
+    -O "$SOMATIC_VCF"
+
+
+if [ $? -ne 0 ]; then
+    log "Mutect2 variant calling failed."
+    exit 1
+else
+    log "Mutect2 variant calling completed successfully."
+fi
+
+# Calculate contamination
+log "Running GetPileupSummaries..."
+gatk GetPileupSummaries \
+    -I "$SPLIT_OUTPUT_BAM" \
+    -V "$CONT_VCF" \
+    -L "$CONT_VCF" \
+    -O "$PILEUP_TAB"  
+
+if [ $? -ne 0 ]; then
+    log "GetPileupSummaries failed."
+    exit 1
+else
+    log "GetPileupSummaries completed successfully."
+fi
+
+# Calculate contamination
+log "Running CalculateContamination..."
+gatk CalculateContamination \
+    -I "$PILEUP_TAB" \
+    -O "$CONT_TAB"
+
+if [ $? -ne 0 ]; then
+    log "CalculateContamination failed."
+    exit 1
+else
+    log "CalculateContamination completed successfully."
+fi
+'
+gatk ModelSegments \
+    -I "$PILEUP_TAB" \
+    -O "$OUTPUT_SEG" \
+    --tumor-sample TCGA-44-3919-01A-02R-1107-07
+
+# Filter Variants
+log "Running FilterMutectCalls..."
+gatk FilterMutectCalls \
+    -R "$REF_GENOME" \
+    -V "$SOMATIC_VCF" \
+    --contamination-table "$CONT_TAB" \
+    --tumor-segmentation "$OUTPUT_SEG" \
+    -O "$FILT_MUTCAL"
+
+if [ $? -ne 0 ]; then
+    log "FilterMutectCalls failed."
+    exit 1
+else
+    log "FilterMutectCalls completed successfully."
+fi
+
+# This will run if the code succeeds
+log "Pipeline finished!"
+
+
+
+
+#!/bin/bash
+
+# Set GATK options
+GATK_JAR="/gatk/gatk-package-4.6.0.0-local.jar"
 INPUT_BAM="/gatk/source/raw_data/1d93cae2-d8e3-4e9d-a097-240d3c06e6a1/81e85e60-a0b6-4898-8cb0-02ac1a70f157.rna_seq.genomic.gdc_realn.bam"  
 OUTPUT_DIR="/gatk/data/elin_output"
 SORTED_BAM="/gatk/project/tmp/sorted.bam"  # Path to the already sorted BAM file
