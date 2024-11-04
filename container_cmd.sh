@@ -5,19 +5,29 @@ exit # How to exit a container
 docker start <container_name_or_id> # Step 1: Start the Container
 sudo docker exec -it adoring_carson /bin/bash  #execute an already excisting container
 
-
-# to update version outside my container
-scp /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/
-scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/project/
-scp /Users/qluelda/Desktop/elin_bin.sh qluelda@bender:~/project/
-rsync -avz /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/
-
 # run a container 
 sudo docker run -v ~/project:/gatk/project \
                -v /source:/gatk/source \
                -v /data:/gatk/data \
                -it broadinstitute/gatk:4.6.0.0
 
+/gatk/project/sample_id_table/sample_id_table.txt
+# to update version outside my container
+scp /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/
+scp /Users/qluelda/Desktop/collectSM.sh qluelda@bender:~/project/
+scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/project/
+scp /Users/qluelda/Desktop/elin_bin.sh qluelda@bender:~/project/
+rsync -avz /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/
+
+# run the script in the container 
+# to run on windows
+sed -i 's/\r$//' run_pipeline.sh 
+sed -i 's/\r$//' elin_bin.sh
+:'
+./gatk/project/run_pipeline.sh
+./run_pipeline.sh
+./final_mutect2.sh
+'
 # curl to use 
 sudo curl -L -o picard.jar https://github.com/broadinstitute/picard/releases/download/2.12.3/picard.jar
 # dowload file with curl
@@ -27,14 +37,9 @@ curl -L -o GRCh38.d1.vd1_GATK_indices.tar.gz "https://api.gdc.cancer.gov/data/2c
 chmod +x run_pipeline.sh
 chmod +x final_mutect2.sh
 chmod +x elin_bin.sh
+chmod +x collectSM.sh
 
-# run the script in the container 
-sed -i 's/\r$//' run_pipeline.sh # to run on windows
-:'
-./gatk/project/run_pipeline.sh
-./run_pipeline.sh
-./final_mutect2.sh
-'
+
 head -n 10 /gatk/data/elin_output/contamination.table # get the ten first heads in the file
 cat /gatk/project/run_pipeline.sh #view script
 zless /gatk/data//elin_output/filtered_without_seg.vcf.gz # view a xipped file. press key: q to exit 
@@ -91,6 +96,8 @@ gsutil cp gs://gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz 
 
 # Get file name for segmentation in filter Mutec Calls 
 samtools view - H 
+# get the RG information from the .BAM file 
+samtools view -H Your_BAM_File.bam | grep '^@RG'
 
 # Get a .GTF file for the specific intervals
 curl -L -o gencode.v47.annotation.gtf.gz https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_47/gencode.v47.annotation.gtf.gz
@@ -101,4 +108,10 @@ java -jar picard.jar BedToIntervalList \
     I=gencode.v47.annotation.exons.bed \
     O=hg38_exons.interval_list \
     SD=GRCh38.d1.vd1.dict
+
+# get funcoator version 
+gatk --java-options "-Xmx8g" FuncotatorDataSourceDownloader \
+    --somatic \
+    --validate-integrity \
+    -O /gatk/project/funcotator_dataSources.v1.7
 
