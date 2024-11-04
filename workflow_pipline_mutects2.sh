@@ -37,10 +37,13 @@ samtools view -H Your_BAM_File.bam | grep '^@RG'
 
 # Fucotator data sources
 # get the latest version for hg:38
+gsutil cp gs://broad-public-datasets/funcotator/funcotator_dataSources.v1.8.hg38.20230908s.tar.gz /gatk/project/
 FUNCOTATOR_DATA_SOURCES="/gatk/project/funcotator_dataSources.v1.8.hg38.20230908s"
+
 https://console.cloud.google.com/storage/browser/broad-public-datasets/funcotator/funcotator_dataSources.v1.8.hg38.20230908s?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))
-# Unzip the file 
-sudo tar -xzvf funcotator_dataSources.v1.7.20200521s.tar.gz -C /gatk/project/
+# Extract the Data Sources
+tar -xzvf /gatk/project/funcotator_dataSources.v1.8.hg38.20230908s.tar.gz -C /gatk/project/
+
 # unzip the gnomad files in the directory 
 sudo tar -xzvf gnomAD_exome.tar.gz
 sudo tar -xzvf gnomAD_genome.tar.gz
