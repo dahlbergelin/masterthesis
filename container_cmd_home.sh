@@ -13,11 +13,11 @@ sudo docker run -v ~/project:/gatk/project \
 
 /gatk/project/sample_id_table/sample_id_table.txt
 # to update version outside my container
-scp /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/
-scp /Users/qluelda/Desktop/collectSM.sh qluelda@bender:~/project/
-scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/project/
+scp /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/project/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/project/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/final_vardict.sh qluelda@bender:~/project/my_scripts
 scp /Users/qluelda/Desktop/elin_bin.sh qluelda@bender:~/project/
-rsync -avz /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/
 
 # run the script in the container 
 # to run on windows
@@ -139,3 +139,7 @@ sudo tar -xzvf funcotator_dataSources.v1.7.20200521s.tar.gz -C /gatk/project/
 sudo tar -xzvf gnomAD_exome.tar.gz
 sudo tar -xzvf gnomAD_genome.tar.gz
 
+# view how many mutations that passed the filter
+view -f PASS filtered_without_seg_5158a03.vcf.gz | grep -v '^#' | wc -l
+bcftools view -f PASS filtered_without_seg_5158a03.vcf.gz | grep -v '^#' | head -n 10
+bcftools view -f PASS funcotated_output_5158a03.vcf | grep -v '^#' | head
