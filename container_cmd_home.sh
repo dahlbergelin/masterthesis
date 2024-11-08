@@ -13,16 +13,19 @@ sudo docker run -v ~/project:/gatk/project \
 
 /gatk/project/sample_id_table/sample_id_table.txt
 # to update version outside my container
-scp /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/project/my_scripts
-scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/project/my_scripts
-scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/project/my_scripts
-scp /Users/qluelda/Desktop/Master_thesis/final_vardict.sh qluelda@bender:~/project/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/run_pipeline.sh qluelda@bender:~/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/final_mutect2.sh qluelda@bender:~/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/final_vardict.sh qluelda@bender:~/my_scripts
+scp /Users/qluelda/Desktop/Master_thesis/target_genes.bed qluelda@bender:~/project/
+scp /Users/qluelda/Desktop/masterthesis/vardict_test.sh qluelda@bender:~/my_scripts
 scp /Users/qluelda/Desktop/elin_bin.sh qluelda@bender:~/project/my_scripts
 
 # run the script in the container 
 # to run on windows
 sed -i 's/\r$//' run_pipeline.sh 
 sed -i 's/\r$//' elin_bin.sh
+sed -i 's/\r$//' vardict_test.sh
 :'
 ./gatk/project/run_pipeline.sh
 ./run_pipeline.sh
@@ -38,6 +41,7 @@ chmod +x run_pipeline.sh
 chmod +x final_mutect2.sh
 chmod +x elin_bin.sh
 chmod +x collectSM.sh
+chmod +x vardict_test.sh
 
 # <<<<<<<< VIEW RESULUTS >>>>>>>>>
     grep -v '^#' filtered_without_seg_5158a03.vcf.gz | cut -f 1-7 | head -n 10
